@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Silver Tech Synergy · AdobeCC Setup Progress</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
+<style>
+  :root {
+    --bg: #0f1220;
+    --bg-gradient: radial-gradient(1200px 600px at 70% -10%, #2a2f5c 0%, var(--bg) 55%);
+    --card: #1a1f35;
+    --border: #2e3554;
+    --step-bg: #232948;
+    --track: #242a45;
+    --accent: #6c8cff;
+    --accent2: #9b6cff;
+    --done: #22c55e;
+    --pending: #f59e0b;
+    --none: #64748b;
+    --text: #e7eaf6;
+    --muted: #94a0c0;
+    --popup-shadow: rgba(0,0,0,.5);
+    --btn-hover-shadow: rgba(108,140,255,.25);
+    --box-hover-shadow: rgba(108,140,255,.2);
+    --border-active: var(--accent);
+    --topbar-bg: rgba(26,31,53,.82);
+    --topbar-text: #e7eaf6;
+    --topbar-muted: #94a0c0;
+    --topbar-btn-border: #2e3554;
+    --topbar-btn-hover: #232948;
+    --logo-chip: transparent;
+    --logo-chip-border: transparent;
+  }
+  html.light {
+    --bg: #f4f6fb;
+    --bg-gradient: radial-gradient(1200px 600px at 70% -10%, #dfe6ff 0%, var(--bg) 55%);
+    --card: #ffffff;
+    --border: #d5daea;
+    --step-bg: #eef1f9;
+    --track: #e2e6f2;
+    --accent: #4f6ef7;
+    --accent2: #8b5cf6;
+    --done: #16a34a;
+    --pending: #d97706;
+    --none: #9aa5b8;
+    --text: #1c2333;
+    --muted: #5c6780;
+    --popup-shadow: rgba(30,40,80,.25);
+    --btn-hover-shadow: rgba(79,110,247,.2);
+    --box-hover-shadow: rgba(79,110,247,.18);
+    --border-active: var(--accent);
+    /* Top bar: soft bluish accent band in light mode */
+    --topbar-bg: linear-gradient(90deg, #e6ecff 0%, #eef1fb 55%, #f3edff 100%);
+    --topbar-text: #232c48;
+    --topbar-muted: #56628a;
+    --topbar-btn-border: #c9d4f0;
+    --topbar-btn-hover: #ffffff;
+    --logo-chip: #ffffff;
+    --logo-chip-border: #d3ddf5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg-gradient);
+    min-height: 100vh;
+    color: var(--text);
+    padding: 40px 20px;
+    transition: background .3s ease, color .3s ease;
+  }
+  /* Top bar */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 40;
+    background: var(--topbar-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--topbar-btn-border);
+    color: var(--topbar-text);
+    transition: background .3s ease, color .3s ease;
+  }
+  .topbar-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: .95rem; white-space: nowrap; }
+  .brand .logo {
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    background: none;
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+  }
+  .brand .logo img { width: 100%; height: 100%; object-fit: contain; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .topbar-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 12px;
+    border-radius: 9px;
+    border: 1px solid var(--topbar-btn-border);
+    background: transparent;
+    color: var(--topbar-text);
+    font-size: .78rem;
+    cursor: pointer;
+    transition: all .2s ease;
+    white-space: nowrap;
+  }
+  .topbar-btn:hover { border-color: var(--accent); background: var(--topbar-btn-hover); }
+  .topbar-btn svg { width: 14px; height: 14px; }
+  .topbar-btn.spinning svg { animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .last-refresh {
+    display: flex; align-items: center; gap: 7px;
+    font-size: .78rem;
+    color: var(--topbar-muted);
+    white-space: nowrap;
+  }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--none); }
+  .status-dot.ok { background: var(--done); animation: pulse 2s ease infinite; }
+  .status-dot.err { background: #ef4444; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+
+  .container { max-width: 1100px; margin: 0 auto; padding-top: 76px; }
+  header { text-align: center; margin-bottom: 36px; }
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  header p { color: var(--muted); margin-top: 8px; font-size: 0.95rem; }
+
+  /* School buttons */
+  .school-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+  .school-btn {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 20px 34px;
+    border-radius: 16px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .25s ease;
+    text-align: center;
+    min-width: 200px;
+  }
+  .school-btn:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 24px var(--btn-hover-shadow); }
+  .school-btn.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-color: transparent;
+    box-shadow: 0 10px 30px rgba(155,108,255,.35);
+  }
+  .school-btn .sub { display: block; font-size: .8rem; font-weight: 400; color: var(--muted); margin-top: 6px; }
+  .school-btn.active .sub { color: rgba(255,255,255,.85); }
+
+  /* School view */
+  #school-view { display: none; animation: fadeUp .4s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .view-header h2 { font-size: 1.5rem; }
+  .overall { color: var(--muted); font-size: .95rem; }
+  .overall b { color: var(--text); }
+
+  .progress-track {
+    height: 10px;
+    border-radius: 6px;
+    background: var(--track);
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--accent), var(--done));
+    transition: width .8s cubic-bezier(.2,.8,.2,1);
+  }
+
+  /* PC grid */
+  .pc-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+  }
+  .pc-box {
+    width: 130px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 12px;
+    cursor: pointer;
+    transition: all .2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .pc-box:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 6px 18px var(--box-hover-shadow); }
+  .pc-box .monitor { font-size: 2.2rem; line-height: 1; }
+  .pc-box .name { margin-top: 8px; font-weight: 700; font-size: .95rem; }
+  .pc-box .count { font-size: .75rem; color: var(--muted); margin-top: 4px; }
+  .dots { display: flex; gap: 5px; margin-top: 10px; justify-content: center; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--none); }
+  .dot.done { background: var(--done); box-shadow: 0 0 6px rgba(34,197,94,.6); }
+  .dot.pending { background: var(--pending); box-shadow: 0 0 6px rgba(245,158,11,.5); }
+
+  /* Detail popup */
+  #popup {
+    position: fixed;
+    inset: 0;
+    background: rgba(5,8,20,.7);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 50;
+  }
+  #popup.show { display: flex; animation: fadeUp .2s ease; }
+  .popup-card {
+    background: var(--card);
+    border: 1px solid #353d63;
+    border-radius: 18px;
+    padding: 28px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px var(--popup-shadow);
+  }
+  .popup-card h3 { font-size: 1.3rem; margin-bottom: 4px; }
+  .popup-card .remote { color: var(--muted); font-size: .9rem; margin-bottom: 18px; }
+  .step {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--step-bg);
+    margin-bottom: 10px;
+  }
+  .step .label { font-weight: 600; font-size: .95rem; }
+  .badge {
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+  .badge.done { background: rgba(34,197,94,.15); color: var(--done); }
+  .badge.pending { background: rgba(245,158,11,.15); color: var(--pending); }
+  .badge.none { background: rgba(100,116,139,.2); color: var(--none); }
+  .popup-close {
+    margin-top: 14px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .popup-close:hover { opacity: .9; }
+
+  .loading, .error { text-align: center; color: var(--muted); padding: 40px; font-size: 1rem; }
+  .error { color: #f87171; }
+  footer { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 40px; }
+  .refresh-info { display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo"><img src="sts.png" alt="STS logo"></div>
+        <span>Silver Tech Synergy</span>
+      </div>
+      <div class="topbar-right">
+        <div class="last-refresh">
+          <div class="status-dot" id="status-dot"></div>
+          <span id="last-refresh">Loading…</span>
+        </div>
+        <button class="topbar-btn" id="refresh-btn" title="Refresh data from Google Sheets" onclick="refreshAll()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          <span>Refresh</span>
+        </button>
+        <button class="topbar-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle light / dark mode">🌙</button>
+      </div>
+    </div>
+  </div>
+
+  <header>
+    <h1>AdobeCC Setup Progress</h1>
+    <p>Silver Tech Synergy · Select a school to view PC installation status</p>
+  </header>
+
+  <div class="school-buttons" id="school-buttons"></div>
+
+  <div id="school-view">
+    <div class="view-header">
+      <h2 id="school-title"></h2>
+      <div class="overall" id="overall"></div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="pc-grid" id="pc-grid"></div>
+    <div class="refresh-info" id="refresh-info"></div>
+  </div>
+
+  <footer>Silver Tech Synergy · Data pulled live from Google Sheets · Click Refresh or reload to update</footer>
+</div>
+
+<!-- PC detail popup -->
+<div id="popup" onclick="if(event.target===this)closePopup()">
+  <div class="popup-card">
+    <h3 id="popup-title"></h3>
+    <div class="remote" id="popup-remote"></div>
+    <div id="popup-steps"></div>
+    <button class="popup-close" onclick="closePopup()">Close</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — Google Sheets published CSV links (one per tab/school)
+   ============================================================ */
+const SHEETS = {
+  "T.Ibrahim": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSKy65xY0dfsMwlfcdeIi1wawWtSvTTEXmXvbyEi-Pnv5au9MwCVFE8eBGqwgbDZ4NfLOeMipqWEj8z/pub?gid=0&single=true&output=csv",
+  "T.Mizan":   "https://docs.google.com/spreadsheets/d/e/2PACX-1vSKy65xY0dfsMwlfcdeIi1wawWtSvTTEXmXvbyEi-Pnv5au9MwCVFE8eBGqwgbDZ4NfLOeMipqWEj8z/pub?gid=1311811681&single=true&output=csv",
+  "Binjai":    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSKy65xY0dfsMwlfcdeIi1wawWtSvTTEXmXvbyEi-Pnv5au9MwCVFE8eBGqwgbDZ4NfLOeMipqWEj8z/pub?gid=625991493&single=true&output=csv",
+};
+/* Display names shown on buttons and headers (keyed by sheet key above) */
+const DISPLAY_NAMES = {
+  "T.Ibrahim": "SMK Tengku Ibrahim",
+  "T.Mizan":   "SMK Tengku Mizan Zainal Abidin",
+  "Binjai":    "SMK Binjai",
+};
+/* ============================================================ */
+
+/* Theme: default dark, remembers choice */
+(function initTheme() {
+  const saved = localStorage.getItem("theme");
+  if (saved === "light") document.documentElement.classList.add("light");
+})();
+function toggleTheme() {
+  const light = document.documentElement.classList.toggle("light");
+  localStorage.setItem("theme", light ? "light" : "dark");
+  updateThemeIcon();
+}
+function updateThemeIcon() {
+  document.getElementById("theme-toggle").textContent =
+    document.documentElement.classList.contains("light") ? "🌙" : "☀️";
+}
+
+const STEPS = ["adobecc-installer", "adobecc-installed", "license-installed"];
+const STEP_LABELS = { "adobecc-installer": "AdobeCC Installer", "adobecc-installed": "AdobeCC Installed", "license-installed": "License Installed" };
+
+let currentSchool = null;
+let currentPCs = [];
+
+// Build school buttons
+const btnWrap = document.getElementById("school-buttons");
+Object.keys(SHEETS).forEach(name => {
+  const b = document.createElement("button");
+  b.className = "school-btn";
+  b.id = "btn-" + name;
+  b.innerHTML = (DISPLAY_NAMES[name] || name) + '<span class="sub">Loading…</span>';
+  b.onclick = () => showSchool(name);
+  btnWrap.appendChild(b);
+});
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], cur = "", inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"' && text[i+1] === '"') { cur += '"'; i++; }
+      else if (c === '"') inQ = false;
+      else cur += c;
+    } else if (c === '"') inQ = true;
+    else if (c === ',') { row.push(cur); cur = ""; }
+    else if (c === '\n' || c === '\r') {
+      if (c === '\r' && text[i+1] === '\n') i++;
+      row.push(cur); rows.push(row); row = []; cur = "";
+    } else cur += c;
+  }
+  if (cur || row.length) { row.push(cur); rows.push(row); }
+  const headers = rows.shift().map(h => h.trim().toLowerCase());
+  return rows
+    .filter(r => r.some(v => v.trim() !== ""))
+    .map(r => {
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = (r[i] || "").trim());
+      return obj;
+    });
+}
+
+function statusOf(v) {
+  v = (v || "").trim().toLowerCase();
+  if (v === "done" || v === "yes" || v === "true" || v === "1" || v === "✔") return "done";
+  if (v === "pending" || v === "no" || v === "false" || v === "0") return "pending";
+  return "none";
+}
+
+async function loadSchool(name) {
+  try {
+    const res = await fetch(SHEETS[name] + "&t=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const rows = parseCSV(await res.text());
+    const btn = document.getElementById("btn-" + name);
+    const doneCount = rows.filter(pc => STEPS.every(s => statusOf(pc[s]) === "done")).length;
+    btn.querySelector(".sub").textContent = rows.length + " PCs · " + doneCount + " fully done";
+    return rows;
+  } catch (e) {
+    document.getElementById("btn-" + name).querySelector(".sub").textContent = "⚠ Failed to load";
+    throw e;
+  }
+}
+
+// (button summaries are loaded by refreshAll() on startup)
+
+function setRefreshStatus(state, text) {
+  const dot = document.getElementById("status-dot");
+  dot.className = "status-dot " + (state || "");
+  document.getElementById("last-refresh").textContent = text;
+}
+
+let lastRefreshTime = null;
+function markRefreshed(ok) {
+  lastRefreshTime = new Date();
+  setRefreshStatus(ok ? "ok" : "err",
+    (ok ? "Updated " : "Error · ") + lastRefreshTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+}
+
+async function refreshAll() {
+  const btn = document.getElementById("refresh-btn");
+  btn.classList.add("spinning");
+  setRefreshStatus("", "Syncing…");
+  const results = await Promise.allSettled(Object.keys(SHEETS).map(name => loadSchool(name)));
+  btn.classList.remove("spinning");
+  const anyOk = results.some(r => r.status === "fulfilled");
+  markRefreshed(anyOk);
+  // If a school view is open, re-render it with fresh data
+  if (currentSchool) {
+    const rows = await loadSchool(currentSchool).catch(() => null);
+    if (rows) { currentPCs = rows; renderSchool(rows); }
+  }
+}
+// Initial load
+refreshAll();
+
+async function showSchool(name) {
+  currentSchool = name;
+  document.querySelectorAll(".school-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("btn-" + name).classList.add("active");
+  const view = document.getElementById("school-view");
+  const grid = document.getElementById("pc-grid");
+  view.style.display = "block";
+  document.getElementById("school-title").textContent = DISPLAY_NAMES[name] || name;
+  grid.innerHTML = '<div class="loading">Loading PCs…</div>';
+
+  let rows;
+  try {
+    rows = await loadSchool(name);
+  } catch {
+    grid.innerHTML = '<div class="error">⚠ Could not load data for ' + name + '. Check the sheet is published and the link is correct.</div>';
+    return;
+  }
+
+  currentPCs = rows;
+  renderSchool(rows);
+}
+
+function renderSchool(rows) {
+  const grid = document.getElementById("pc-grid");
+  const totalSteps = rows.length * STEPS.length;
+  const doneSteps = rows.reduce((n, pc) => n + STEPS.filter(s => statusOf(pc[s]) === "done").length, 0);
+  const pct = totalSteps ? Math.round(doneSteps / totalSteps * 100) : 0;
+  const fullyDone = rows.filter(pc => STEPS.every(s => statusOf(pc[s]) === "done")).length;
+
+  document.getElementById("overall").innerHTML =
+    "<b>" + fullyDone + "/" + rows.length + "</b> PCs fully done · <b>" + pct + "%</b> overall";
+  requestAnimationFrame(() => document.getElementById("progress-fill").style.width = pct + "%");
+
+  grid.innerHTML = "";
+  rows.forEach((pc, i) => {
+    const statuses = STEPS.map(s => statusOf(pc[s]));
+    const doneN = statuses.filter(st => st === "done").length;
+    const box = document.createElement("div");
+    box.className = "pc-box";
+    box.style.animationDelay = (i * 0.03) + "s";
+    box.innerHTML =
+      '<div class="monitor">' + (doneN === STEPS.length ? "🖥️" : doneN > 0 ? "💻" : "🖥️") + '</div>' +
+      '<div class="name">' + (pc["pc-id"] || pc["pc-no"] || "PC") + '</div>' +
+      '<div class="count">' + doneN + "/" + STEPS.length + ' steps</div>' +
+      '<div class="dots">' + statuses.map(st => '<div class="dot ' + st + '"></div>').join("") + '</div>';
+    box.onclick = () => openPopup(pc, statuses);
+    grid.appendChild(box);
+  });
+
+  document.getElementById("refresh-info").textContent = "";
+}
+
+function openPopup(pc, statuses) {
+  document.getElementById("popup-title").textContent = pc["pc-id"] || pc["pc-no"] || "PC";
+  document.getElementById("popup-remote").textContent = pc["remote-id"] ? "Remote ID: " + pc["remote-id"] : "Remote ID: (not yet assigned)";
+  document.getElementById("popup-steps").innerHTML = STEPS.map((s, i) => {
+    const st = statuses[i];
+    const label = st === "done" ? "Done" : st === "pending" ? "Pending" : "—";
+    return '<div class="step"><span class="label">' + STEP_LABELS[s] + '</span><span class="badge ' + st + '">' + label + '</span></div>';
+  }).join("");
+  document.getElementById("popup").classList.add("show");
+}
+function closePopup() { document.getElementById("popup").classList.remove("show"); }
+document.addEventListener("keydown", e => { if (e.key === "Escape") closePopup(); });
+updateThemeIcon();
+</script>
+</body>
+</html>
