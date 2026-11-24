@@ -223,7 +223,8 @@
     text-align: center;
   }
   .pc-box:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 6px 18px var(--box-hover-shadow); }
-  .pc-box .monitor { font-size: 2.2rem; line-height: 1; }
+  .pc-box .monitor { font-size: 2.2rem; line-height: 1; transition: opacity .25s ease; }
+  .pc-box.finished { border-color: color-mix(in srgb, var(--done) 45%, var(--border)); }
   .pc-box .name { margin-top: 8px; font-weight: 700; font-size: .95rem; }
   .pc-box .count { font-size: .75rem; color: var(--muted); margin-top: 4px; }
   .dots { display: flex; gap: 5px; margin-top: 10px; justify-content: center; }
@@ -517,10 +518,10 @@ function renderSchool(rows) {
     const statuses = STEPS.map(s => statusOf(pc[s]));
     const doneN = statuses.filter(st => st === "done").length;
     const box = document.createElement("div");
-    box.className = "pc-box";
+    box.className = "pc-box" + (doneN === STEPS.length ? " finished" : "");
     box.style.animationDelay = (i * 0.03) + "s";
     box.innerHTML =
-      '<div class="monitor">' + (doneN === STEPS.length ? "🖥️" : doneN > 0 ? "💻" : "🖥️") + '</div>' +
+      '<div class="monitor">🖥️</div>' +
       '<div class="name">' + (pc["pc-id"] || pc["pc-no"] || "PC") + '</div>' +
       '<div class="count">' + doneN + "/" + STEPS.length + ' steps</div>' +
       '<div class="dots">' + statuses.map(st => '<div class="dot ' + st + '"></div>').join("") + '</div>';
