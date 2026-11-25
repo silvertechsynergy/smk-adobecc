@@ -59,6 +59,15 @@ The key (e.g. `"T.Ibrahim"`) links the two objects together. To add a school, ad
 - Live refresh with last-updated timestamp
 - Responsive layout
 
+### Design theme
+
+The visual theme follows the RootSys design language:
+
+- **Light:** warm cream "paper" surface (`#FAF7F1`) with warm brown text and an amber accent (`#C4954A`)
+- **Dark:** deep teal night surface (`#0B1415`) with warm amber accent (`#E8B04E`)
+- **Fonts:** Archivo for headings, Inter for body text
+- **Shapes:** soft 12–16px radii, pill-shaped buttons and badges
+
 ## Files
 
 | File | Purpose |
