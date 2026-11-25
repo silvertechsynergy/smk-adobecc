@@ -198,7 +198,12 @@
     cursor: pointer;
     transition: all .2s ease;
     text-align: center;
-    min-width: 200px;
+    width: 260px;
+    min-height: 92px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
   .school-btn:hover { transform: translateY(-2px); border-color: var(--border-strong); box-shadow: 0 6px 20px var(--btn-hover-shadow); }
   .school-btn.active {
@@ -506,8 +511,10 @@ async function loadSchool(name) {
     if (!res.ok) throw new Error("HTTP " + res.status);
     const rows = parseCSV(await res.text());
     const btn = document.getElementById("btn-" + name);
-    const doneCount = rows.filter(pc => STEPS.every(s => statusOf(pc[s]) === "done")).length;
-    btn.querySelector(".sub").textContent = rows.length + " PCs · " + doneCount + " fully done";
+    const totalSteps = rows.length * STEPS.length;
+    const doneSteps = rows.reduce((n, pc) => n + STEPS.filter(s => statusOf(pc[s]) === "done").length, 0);
+    const pct = totalSteps ? Math.round(doneSteps / totalSteps * 100) : 0;
+    btn.querySelector(".sub").textContent = pct + "% complete";
     return rows;
   } catch (e) {
     document.getElementById("btn-" + name).querySelector(".sub").textContent = "⚠ Failed to load";
